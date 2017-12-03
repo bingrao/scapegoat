@@ -11,10 +11,21 @@ class Feedback(consoleOutput: Boolean, reporter: Reporter) {
 
   var levelOverridesByInspectionSimpleName: Map[String, Level] = Map.empty
 
-  def infos = warnings(Levels.Info)
-  def errors = warnings(Levels.Error)
-  def warns = warnings(Levels.Warning)
+  /**
+    *  Based on the level to filter warning information
+    * @param level
+    * @return
+    */
   def warnings(level: Level): Seq[Warning] = warnings.filter(_.level == level)
+
+  // Get Level "Info" warning
+  def infos = warnings(Levels.Info)
+  // Get Level "Error" warning
+  def errors = warnings(Levels.Error)
+  // Get Level "Warning" warning
+  def warns = warnings(Levels.Warning)
+
+
 
   def warn(pos: Position, inspection: Inspection, snippet: Option[String] = None): Unit = {
     val level = inspection.defaultLevel
