@@ -16,6 +16,12 @@ class ScapegoatPlugin(val global: Global) extends Plugin {
   val component = new ScapegoatComponent(global, ScapegoatConfig.inspections)
   override val components: List[PluginComponent] = List(component)
 
+  /**
+    * Init a plugin
+    * @param options
+    * @param error
+    * @return
+    */
   override def init(options: List[String], error: String => Unit): Boolean = {
     options.find(_.startsWith("disabledInspections:")) match {
       case Some(option) => component.disabled = option.drop("disabledInspections:".length).split(':').toList
@@ -142,7 +148,7 @@ class ScapegoatComponent(val global: Global, inspections: Seq[Inspection])
     .filterNot(inspection => disabled.contains(inspection.getClass.getSimpleName))
   lazy val feedback = new Feedback(consoleOutput, global.reporter)
 
-  override def newPhase(prev: scala.tools.nsc.Phase): Phase = new Phase(prev) {
+  override def newPhase(prev: scala.tools.nsc.Phase): Phase = new Phase(prev) { // Comes from Transform class
     override def run(): Unit = {
       if (disableAll) {
         reporter.echo("[info] [scapegoat] All inspections disabled")
@@ -181,11 +187,20 @@ class ScapegoatComponent(val global: Global, inspections: Seq[Inspection])
     }
   }
 
-  protected def newTransformer(unit: CompilationUnit): Transformer = {
+  /**
+    * Override Transform definition
+    * @param unit
+    * @return
+    */
+  protected def newTransformer(unit: CompilationUnit): Transformer = { // Comes from Transform class
     count.incrementAndGet()
     new Transformer(unit)
   }
 
+  /**
+    * Define a transformer class to handle all kinds of inspections.
+    * @param unit
+    */
   class Transformer(unit: global.CompilationUnit) extends TypingTransformer(unit) {
     override def transform(tree: global.Tree): global.Tree = {
       if (ignoredFiles.exists(unit.source.path.matches)) {
